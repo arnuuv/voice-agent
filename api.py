@@ -19,3 +19,6 @@ def get_orders():
     "status":"pending",
     "shipping_address":"123 Main St, New York, NY 10030"
   })
+  
+if __name__=="__main__":
+  app.run(debug=True)
