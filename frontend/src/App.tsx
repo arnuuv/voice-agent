@@ -2,13 +2,13 @@ import { useState } from 'react'
 import './App.css'
 import Vapi from "@vapi-ai/web";
 
-const vapi = new Vapi("<enter-yours>");
+const vapi = new Vapi("9261dd01-2f22-4716-b5e6-4940e540b603");
 
 function App() {
   const [isCallActive, setIsCallActive] = useState(false)
 
   const startCall = async () => {
-    await vapi.start("<enter-yours>")
+    await vapi.start("ba32a3aa-f13b-4914-83b5-0118959c03f3")
     setIsCallActive(true)
   }
 
