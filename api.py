@@ -3,6 +3,7 @@ from db import orders_db
 from http import HTTPStatus
 from typing import Dict, Any, Tuple
 import logging
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -47,6 +48,59 @@ def get_order() -> Tuple[Dict[str, Any], int]:
         
     except Exception as e:
         logger.error(f"Error processing request: {str(e)}")
+        return jsonify({
+            "error": "Internal server error",
+            "details": str(e)
+        }), HTTPStatus.INTERNAL_SERVER_ERROR
+
+@app.route('/orders', methods=["POST"])
+def create_order() -> Tuple[Dict[str, Any], int]:
+    """
+    Create a new order with the provided details.
+    
+    Expected JSON body:
+    {
+        "customer_name": str,
+        "total_amount": float,
+        "shipping_address": str
+    }
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid JSON"}), HTTPStatus.BAD_REQUEST
+        
+        required_fields = ["customer_name", "total_amount", "shipping_address"]
+        missing_fields = [field for field in required_fields if field not in data]
+        
+        if missing_fields:
+            return jsonify({
+                "error": "Missing required fields",
+                "fields": missing_fields
+            }), HTTPStatus.BAD_REQUEST
+            
+        # Generate unique order number (simple implementation)
+        order_number = f"ORD-{len(orders_db) + 1:04d}"
+        
+        new_order = {
+            "order_number": order_number,
+            "customer_name": data["customer_name"],
+            "order_date": datetime.now().isoformat(),
+            "total_amount": float(data["total_amount"]),
+            "status": "pending",
+            "shipping_address": data["shipping_address"]
+        }
+        
+        orders_db[order_number] = new_order
+        logger.info(f"Created new order: {order_number}")
+        
+        return jsonify(new_order), HTTPStatus.CREATED
+        
+    except ValueError as ve:
+        logger.error(f"Validation error: {str(ve)}")
+        return jsonify({"error": "Invalid data format"}), HTTPStatus.BAD_REQUEST
+    except Exception as e:
+        logger.error(f"Error creating order: {str(e)}")
         return jsonify({
             "error": "Internal server error",
             "details": str(e)
